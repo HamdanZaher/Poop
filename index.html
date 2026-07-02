@@ -456,6 +456,24 @@ async function decryptData(key, payload){
   return JSON.parse(dec.decode(plaintext));
 }
 
+/* ===================== STORAGE (browser localStorage) ===================== */
+// Standard browser storage so this works on any hosted site.
+window.storage = {
+  async get(key){
+    const v = localStorage.getItem(key);
+    if(v === null) throw new Error('not found');
+    return { key, value: v };
+  },
+  async set(key, value){
+    localStorage.setItem(key, value);
+    return { key, value };
+  },
+  async delete(key){
+    localStorage.removeItem(key);
+    return { key, deleted: true };
+  }
+};
+
 /* ===================== STATE ===================== */
 let vaultKey = null;
 let entries = [];
@@ -515,6 +533,7 @@ async function handleSubmit(){
       await saveVault();
       unlockApp();
     }catch(e){
+      console.error('Vault creation error:', e);
       showLoginMsg('Something went wrong creating the vault.', true);
       submitBtn.disabled = false;
     }
@@ -531,6 +550,7 @@ async function handleSubmit(){
       entries = decrypted;
       unlockApp();
     }catch(e){
+      console.error('Vault unlock error:', e);
       showLoginMsg('Incorrect password.', true);
       submitBtn.disabled = false;
     }
